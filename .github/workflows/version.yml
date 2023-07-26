@@ -17,6 +17,10 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '14'
+      
+      - name: List files in scripts folder
+        run: |
+          ls -al scripts
 
       - name: Extract ClickUp Tickets
         run: |
