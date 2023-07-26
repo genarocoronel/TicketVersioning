@@ -1,0 +1,32 @@
+name: Automated Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Extract ClickUp Tickets
+        run: |
+          node scripts/extract_clickup_tickets.js
+
+      - name: Create Tags and Release Notes
+        id: create_release
+        run: |
+          node scripts/create_tags_and_release_notes.js
+
+      - name: Push Tags and Release Notes
+        run: |
+          node scripts/push_tags_and_release_notes.js
