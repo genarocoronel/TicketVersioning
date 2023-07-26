@@ -17,10 +17,6 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '14'
-      
-      - name: List files in scripts folder
-        run: |
-          ls -al scripts
 
       - name: Extract ClickUp Tickets
         run: |
@@ -33,4 +29,9 @@ jobs:
 
       - name: Push Tags and Release Notes
         run: |
-          node scripts/push_tags_and_release_notes.js
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a $(cat version.txt) -F release-notes.md
+          git push origin --tags
+        env:
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}  # Use the secret here
