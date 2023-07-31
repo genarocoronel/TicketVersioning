@@ -25,8 +25,8 @@ async function run() {
     console.log('PR Title:', prTitle);
     console.log('Extracted Ticket Numbers:', ticketNumbers);
     
-    fs.writeFileSync('clickup-tickets.txt', ticketNumbers.join('\n'));
-    fs.writeFileSync('pr-first-lines.txt', firstLines.join('\n'));
+  
+    return allMatches.map((match) => match.replace('#', ''));
   } catch (error) {
     console.error('Error occurred while extracting ClickUp tickets:', error);
     process.exit(1);
