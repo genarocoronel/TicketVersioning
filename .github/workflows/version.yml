@@ -19,14 +19,19 @@ jobs:
         with:
           node-version: '14'
 
-      - name: Extract ClickUp Tickets
+      - name: Extract ClickUp Tickets and First Lines of PR Description
+        id: extract_tickets
         run: |
+          echo "Running extract_clickup_tickets.js script..."
           node scripts/extract_clickup_tickets.js
+          echo "Done extracting ClickUp tickets and first lines."
 
       - name: Create Tags and Release Notes
         id: create_release
         run: |
+          echo "Running create_tags_and_release_notes.js script..."
           node scripts/create_tags_and_release_notes.js
+          echo "Done creating tags and release notes."
 
       - name: Push Tags and Release Notes
         run: |
