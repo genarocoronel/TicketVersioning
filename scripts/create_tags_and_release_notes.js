@@ -1,31 +1,34 @@
 const fs = require('fs');
 
-function generateVersionTag(ticketNumbers) {
-  return `v1.0.0-clickup-${ticketNumbers.join('-')}`;
+function extractClickUpTickets(prDescription, prTitle) {
+  const clickUpTicketRegex = /#(\d+)/g;
+  const descriptionMatches = prDescription.match(clickUpTicketRegex) || [];
+  const titleMatches = prTitle.match(clickUpTicketRegex) || [];
+  const allMatches = [...new Set([...descriptionMatches, ...titleMatches])]; // Combine both matches
+
+  return allMatches.map((match) => match.replace('#', ''));
 }
 
-function generateReleaseNotes(ticketNumbers, firstLines, clickUpLinks) {
-  // In a real scenario, you might want to fetch additional details for each ticket
-  // from ClickUp API or other sources to generate comprehensive release notes.
-  // For this example, we'll generate simple release notes with ticket numbers and ClickUp links.
-  const releaseNotesContent = ticketNumbers.map((ticket, index) => `- Fix issue #${ticket}\n  ${firstLines[index]}\n  ClickUp Ticket: ${clickUpLinks[index]}`).join('\n');
-  return `# Release Notes\n\n${releaseNotesContent}`;
+function extractFirstLines(prDescription) {
+  // Extract the first line of the PR description
+  const firstLines = prDescription.trim().split('\n').map((line) => line.trim()).filter(Boolean);
+  return firstLines;
 }
 
 async function run() {
   try {
-    const ticketNumbers = fs.readFileSync('clickup-tickets.txt', 'utf8').trim().split('\n');
-    const prFirstLines = fs.readFileSync('pr-first-lines.txt', 'utf8').trim().split('\n');
-    const clickUpLinks = fs.readFileSync('clickup-links.txt', 'utf8').trim().split('\n');
-    console.log('Ticket Numbers:', ticketNumbers);
+    const prDescription = fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8');
+    const prTitle = process.env.GITHUB_HEAD_REF || ''; // Assumes the PR title is available as the branch name
+    const ticketNumbers = extractClickUpTickets(prDescription, prTitle);
+    const firstLines = extractFirstLines(prDescription);
+    console.log('PR Description:', prDescription);
+    console.log('PR Title:', prTitle);
+    console.log('Extracted Ticket Numbers:', ticketNumbers);
+    
+    // Use ticketNumbers for further processing if needed
 
-    const versionTag = generateVersionTag(ticketNumbers);
-    fs.writeFileSync('version.txt', versionTag);
-
-    const releaseNotes = generateReleaseNotes(ticketNumbers, prFirstLines, clickUpLinks);
-    fs.writeFileSync('release-notes.md', releaseNotes);
   } catch (error) {
-    console.error('Error occurred while creating tags and release notes:', error);
+    console.error('Error occurred while extracting ClickUp tickets:', error);
     process.exit(1);
   }
 }
