@@ -21,7 +21,10 @@ async function run() {
     const prTitle = process.env.GITHUB_HEAD_REF || ''; // Assumes the PR title is available as the branch name
     const ticketNumbers = extractClickUpTickets(prDescription, prTitle);
     const firstLines = extractFirstLines(prDescription);
-
+    console.log('PR Description:', prDescription);
+    console.log('PR Title:', prTitle);
+    console.log('Extracted Ticket Numbers:', ticketNumbers);
+    
     fs.writeFileSync('clickup-tickets.txt', ticketNumbers.join('\n'));
     fs.writeFileSync('pr-first-lines.txt', firstLines.join('\n'));
   } catch (error) {

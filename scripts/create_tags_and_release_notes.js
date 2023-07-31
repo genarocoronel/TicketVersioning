@@ -17,6 +17,7 @@ async function run() {
     const ticketNumbers = fs.readFileSync('clickup-tickets.txt', 'utf8').trim().split('\n');
     const prFirstLines = fs.readFileSync('pr-first-lines.txt', 'utf8').trim().split('\n');
     const clickUpLinks = fs.readFileSync('clickup-links.txt', 'utf8').trim().split('\n');
+    console.log('Ticket Numbers:', ticketNumbers);
 
     const versionTag = generateVersionTag(ticketNumbers);
     fs.writeFileSync('version.txt', versionTag);
