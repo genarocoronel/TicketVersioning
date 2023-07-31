@@ -1,13 +1,14 @@
 const fs = require('fs');
 
 function extractClickUpTickets(prDescription, prTitle) {
-  const clickUpTicketRegex = /ClickUp Ticket: https:\/\/app.clickup.com\/t\/(\d+)/g;
+  const clickUpTicketRegex = /#(\d+)/g;
   const descriptionMatches = prDescription.match(clickUpTicketRegex) || [];
   const titleMatches = prTitle.match(clickUpTicketRegex) || [];
-  const allMatches = [...new Set(descriptionMatches.concat(titleMatches))]; // Remove duplicate matches
+  const allMatches = [...new Set([...descriptionMatches, ...titleMatches])]; // Combine both matches
 
-  return allMatches.map((match) => match.replace('ClickUp Ticket: https://app.clickup.com/t/', ''));
+  return allMatches.map((match) => match.replace('#', ''));
 }
+
 
 function extractFirstLines(prDescription) {
   // Extract the first line of the PR description
