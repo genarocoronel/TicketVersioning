@@ -9,7 +9,6 @@ function extractClickUpTickets(prDescription, prTitle) {
   return allMatches.map((match) => match.replace('#', ''));
 }
 
-
 function extractFirstLines(prDescription) {
   // Extract the first line of the PR description
   const firstLines = prDescription.trim().split('\n').map((line) => line.trim()).filter(Boolean);
@@ -26,8 +25,8 @@ async function run() {
     console.log('PR Title:', prTitle);
     console.log('Extracted Ticket Numbers:', ticketNumbers);
     
-  
-    return allMatches.map((match) => match.replace('#', ''));
+    // Use ticketNumbers for further processing if needed
+
   } catch (error) {
     console.error('Error occurred while extracting ClickUp tickets:', error);
     process.exit(1);
