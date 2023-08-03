@@ -16,8 +16,8 @@ jobs:
           git config --global user.name "GitHub Actions"
 
       - name: Create Tag and Release
+        if: github.event.pull_request.merged == true
         run: |
-          if: github.event.pull_request.merged == true
           BASE_REF="${{ github.event.pull_request.base.ref }}"
           TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP 'CU-\d+')
           PR_DESCRIPTION=$(echo ${{ github.event.pull_request.body }} | head -n 2)
