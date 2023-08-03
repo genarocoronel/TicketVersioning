@@ -1,36 +1,35 @@
-name: PR Workflow
-
+name: Create Tag and Release
 on:
   pull_request:
     types: [closed]
 
 jobs:
-  process-pr:
+  build:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Process PR
-      run: |
-        PR_TITLE="${{ github.event.pull_request.title }}"
-        PR_BODY="${{ github.event.pull_request.body }}"
-        BASE_REF="${{ github.event.pull_request.base.ref }}"
-        # Extract ClickUp ticket number from PR title
-        TICKET_NUMBER=$(echo $PR_TITLE | grep -oE '[A-Z0-9-]+')
-        # Extract first two lines of PR description
-        DESCRIPTION=$(echo "$PR_BODY" | head -n 2)
-        
-        if [[ "$BASE_REF" == "staging" ]]; then
-          # If PR was merged into staging, add tag with ticket number and description
-          git tag -a $TICKET_NUMBER -m "$DESCRIPTION"
-          git push origin --tags
-        elif [[ "$BASE_REF" == "main" ]]; then
-          # If PR was merged into main, create a release with all tags
-          TAGS=$(git tag --list)
-          RELEASE_BODY="Issues included in this release:\n\n$TAGS"
-          echo $RELEASE_BODY > release_body.txt
-          gh release create staging-merged release_body.txt
-        fi
+      - name: Set up Git user
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+      - name: Create Tag and Release
+        run: |
+          if: github.event.pull_request.merged == true
+          BASE_REF="${{ github.event.pull_request.base.ref }}"
+          TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP 'CU-\d+')
+          PR_DESCRIPTION=$(echo ${{ github.event.pull_request.body }} | head -n 2)
+          if [[ "$BASE_REF" == "staging" ]]; then
+            git tag "$TICKET_NUMBER" -m "$PR_DESCRIPTION"
+            git push origin "$TICKET_NUMBER"
+          elif [[ "$BASE_REF" == "main" ]]; then
+            TAGS=$(git tag --merged staging)
+            git tag -d $TAGS
+            git push origin :$TAGS
+            for TAG in $TAGS; do
+              git tag "$TAG"
+              git push origin "$TAG"
+            done
+          fi
