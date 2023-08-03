@@ -1,43 +1,36 @@
-name: Automated Release
+name: PR Workflow
 
 on:
-  push:
-    branches:
-      - main
-      - staging
+  pull_request:
+    types: [closed]
 
 jobs:
-  build:
+  process-pr:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
 
     steps:
-      - name: Check out the code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
-      - name: Extract ClickUp Tickets and First Lines of PR Description
-        id: extract_tickets
-        run: |
-          echo "Running extract_clickup_tickets.js script..."
-          node scripts/extract_clickup_tickets.js
-          echo "Done extracting ClickUp tickets and first lines."
-
-      - name: Create Tags and Release Notes
-        id: create_release
-        run: |
-          echo "Running create_tags_and_release_notes.js script..."
-          node scripts/create_tags_and_release_notes.js
-          echo "Done creating tags and release notes."
-
-      - name: Push Tags and Release Notes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git tag -a $(cat version.txt) -F release-notes.md
+    - name: Process PR
+      run: |
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        PR_BODY="${{ github.event.pull_request.body }}"
+        BASE_REF="${{ github.event.pull_request.base.ref }}"
+        # Extract ClickUp ticket number from PR title
+        TICKET_NUMBER=$(echo $PR_TITLE | grep -oE '[A-Z0-9-]+')
+        # Extract first two lines of PR description
+        DESCRIPTION=$(echo "$PR_BODY" | head -n 2)
+        
+        if [[ "$BASE_REF" == "staging" ]]; then
+          # If PR was merged into staging, add tag with ticket number and description
+          git tag -a $TICKET_NUMBER -m "$DESCRIPTION"
           git push origin --tags
-        env:
-          GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}  # Use the secret here
+        elif [[ "$BASE_REF" == "main" ]]; then
+          # If PR was merged into main, create a release with all tags
+          TAGS=$(git tag --list)
+          RELEASE_BODY="Issues included in this release:\n\n$TAGS"
+          echo $RELEASE_BODY > release_body.txt
+          gh release create staging-merged release_body.txt
+        fi
