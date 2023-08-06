@@ -19,13 +19,14 @@ jobs:
         if: github.event.pull_request.merged == true
         run: |
           BASE_REF="${{ github.event.pull_request.base.ref }}"
-          TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP 'ticket-\d+')
+          TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP 'ticket-\d+'  || echo "")
+          URL_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP '\d+')
           PR_DESCRIPTION=$(echo ${{ github.event.pull_request.body }} | head -n 2)
           echo "BASE_REF: $BASE_REF"
           echo "TICKET_NUMBER: $TICKET_NUMBER"
           echo "PR_DESCRIPTION: $PR_DESCRIPTION"
           if [[ "$BASE_REF" == "staging" ]]; then
-            CLICKUP_URL="https://clickup.com/issue/$TICKET_NUMBER"
+            CLICKUP_URL="https://clickup.com/issue/$URL_NUMBER"
             git tag "$TICKET_NUMBER" -m "$PR_DESCRIPTION \n $CLICKUP_URL"
             git push origin "$TICKET_NUMBER"
           elif [[ "$BASE_REF" == "main" ]]; then
