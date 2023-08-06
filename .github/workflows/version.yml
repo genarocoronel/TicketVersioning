@@ -27,7 +27,7 @@ jobs:
           echo "PR_DESCRIPTION: $PR_DESCRIPTION"
           if [[ "$BASE_REF" == "staging" ]]; then
             CLICKUP_URL="https://clickup.com/issue/$URL_NUMBER"
-            git tag "$TICKET_NUMBER" -m "$PR_DESCRIPTION \n $CLICKUP_URL"
+            git tag "$TICKET_NUMBER" -m "$PR_DESCRIPTION $CLICKUP_URL"
             git push origin "$TICKET_NUMBER"
           elif [[ "$BASE_REF" == "main" ]]; then
             TAGS=$(git tag --merged staging)
