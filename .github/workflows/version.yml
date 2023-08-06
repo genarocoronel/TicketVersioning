@@ -16,10 +16,10 @@ jobs:
           git config --global user.name "GitHub Actions"
       - name: Install GitHub CLI
         run: |
-          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
-          sudo apt-add-repository https://cli.github.com/packages
-          sudo apt update
-          sudo apt install gh
+          curl -sSL https://github.com/cli/cli/releases/download/v2.3.0/gh_2.3.0_linux_amd64.tar.gz -o gh.tar.gz
+          tar xzf gh.tar.gz
+          sudo mv gh_2.3.0_linux_amd64/bin/gh /usr/local/bin/
+          rm -rf gh.tar.gz gh_2.3.0_linux_amd64
 
       - name: Create Tag and Release
         if: github.event.pull_request.merged == true
