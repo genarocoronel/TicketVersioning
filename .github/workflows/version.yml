@@ -19,18 +19,18 @@ jobs:
         if: github.event.pull_request.merged == true
         run: |
           BASE_REF="${{ github.event.pull_request.base.ref }}"
-          TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP '\d+')
-          URL_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP '\d+')
+          TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP 'ticket-\d+' || echo "")
           PR_DESCRIPTION=$(echo ${{ github.event.pull_request.body }} | head -n 2)
           echo "BASE_REF: $BASE_REF"
           echo "TICKET_NUMBER: $TICKET_NUMBER"
           echo "PR_DESCRIPTION: $PR_DESCRIPTION"
-          if [[ "$BASE_REF" == "staging" ]]; then
-            CLICKUP_URL="https://clickup.com/issue/$URL_NUMBER"
-            git tag "$TICKET_NUMBER" -m "$PR_DESCRIPTION $CLICKUP_URL"
+          if [[ "$BASE_REF" == "staging" && -n "$TICKET_NUMBER" ]]; then
+            CLICKUP_URL="https://clickup.com/issue/$TICKET_NUMBER"
+            git tag "$TICKET_NUMBER" -m "$PR_DESCRIPTION\n$CLICKUP_URL"
             git push origin "$TICKET_NUMBER"
+            gh release create "$TICKET_NUMBER" --title "$TICKET_NUMBER" --notes "$PR_DESCRIPTION\n$CLICKUP_URL"
           elif [[ "$BASE_REF" == "main" ]]; then
-            TAGS=$(git tag --merged staging)
+            TAGS=$(git tag --merged main) # Get tags merged into main
             git tag -d $TAGS
             git push origin :$TAGS
             ALL_TICKETS=""
@@ -38,12 +38,13 @@ jobs:
             for TAG in $TAGS; do
               CLICKUP_URL="https://clickup.com/issue/$TAG"
               ALL_TICKETS+="$CLICKUP_URL, "
-              # Assuming the PR description is stored in the tag message, you can extract it using git tag -l --format='%(contents)'
               PR_DESC_FOR_TAG=$(git tag -l "$TAG" --format='%(contents)')
-              ALL_PR_DESCRIPTIONS+="$PR_DESC_FOR_TAG \n "
+              ALL_PR_DESCRIPTIONS+="$PR_DESC_FOR_TAG\n"
             done
             for TAG in $TAGS; do
               git tag "$TAG" -m "Merged Tickets: $ALL_TICKETS\n$ALL_PR_DESCRIPTIONS"
               git push origin "$TAG"
+              gh release create "$TAG" --title "$TAG" --notes "Merged Tickets: $ALL_TICKETS\n$ALL_PR_DESCRIPTIONS"
             done
           fi
+
