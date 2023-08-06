@@ -29,7 +29,7 @@ jobs:
             git tag -d $TAGS
             git push origin :$TAGS
             for TAG in $TAGS; do
-              git tag "$TAG"
+              git tag "$TAG" -m "Ticket Tag"
               git push origin "$TAG"
             done
           fi
