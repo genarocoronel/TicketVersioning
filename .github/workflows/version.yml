@@ -19,7 +19,7 @@ jobs:
         if: github.event.pull_request.merged == true
         run: |
           BASE_REF="${{ github.event.pull_request.base.ref }}"
-          TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP 'issue-\d+')
+          TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP 'ticket-\d+')
           PR_DESCRIPTION=$(echo ${{ github.event.pull_request.body }} | head -n 2)
           echo "BASE_REF: $BASE_REF"
           echo "TICKET_NUMBER: $TICKET_NUMBER"
@@ -32,7 +32,7 @@ jobs:
             git tag -d $TAGS
             git push origin :$TAGS
             for TAG in $TAGS; do
-              git tag "$TAG" -m "Tickset Tag"
+              git tag "$TAG" -m "$PR_DESCRIPTION"
               git push origin "$TAG"
             done
           fi
