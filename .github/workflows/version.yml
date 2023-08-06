@@ -21,6 +21,9 @@ jobs:
           BASE_REF="${{ github.event.pull_request.base.ref }}"
           TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP 'CU-\d+')
           PR_DESCRIPTION=$(echo ${{ github.event.pull_request.body }} | head -n 2)
+          echo "BASE_REF: $BASE_REF"
+          echo "TICKET_NUMBER: $TICKET_NUMBER"
+          echo "PR_DESCRIPTION: $PR_DESCRIPTION"
           if [[ "$BASE_REF" == "staging" ]]; then
             git tag "$TICKET_NUMBER" -m "$PR_DESCRIPTION"
             git push origin "$TICKET_NUMBER"
