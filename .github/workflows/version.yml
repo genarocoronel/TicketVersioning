@@ -14,21 +14,27 @@ jobs:
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
+          sudo apt-add-repository https://cli.github.com/packages
+          sudo apt update
+          sudo apt install gh
 
       - name: Create Tag and Release
         if: github.event.pull_request.merged == true
         run: |
           BASE_REF="${{ github.event.pull_request.base.ref }}"
-          TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP 'ticket-\d+' || echo "")
+          TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP '\d+' || echo "")
           PR_DESCRIPTION=$(echo ${{ github.event.pull_request.body }} | head -n 2)
           echo "BASE_REF: $BASE_REF"
           echo "TICKET_NUMBER: $TICKET_NUMBER"
           echo "PR_DESCRIPTION: $PR_DESCRIPTION"
           if [[ "$BASE_REF" == "staging" && -n "$TICKET_NUMBER" ]]; then
             CLICKUP_URL="https://clickup.com/issue/$TICKET_NUMBER"
-            git tag "$TICKET_NUMBER" -m "$PR_DESCRIPTION\n$CLICKUP_URL"
+            git tag "$TICKET_NUMBER" -m "$PR_DESCRIPTION $CLICKUP_URL"
             git push origin "$TICKET_NUMBER"
-            gh release create "$TICKET_NUMBER" --title "$TICKET_NUMBER" --notes "$PR_DESCRIPTION\n$CLICKUP_URL"
+            gh release create "$TICKET_NUMBER" --title "$TICKET_NUMBER" --notes "$PR_DESCRIPTION $CLICKUP_URL"
           elif [[ "$BASE_REF" == "main" ]]; then
             TAGS=$(git tag --merged main) # Get tags merged into main
             git tag -d $TAGS
@@ -39,12 +45,12 @@ jobs:
               CLICKUP_URL="https://clickup.com/issue/$TAG"
               ALL_TICKETS+="$CLICKUP_URL, "
               PR_DESC_FOR_TAG=$(git tag -l "$TAG" --format='%(contents)')
-              ALL_PR_DESCRIPTIONS+="$PR_DESC_FOR_TAG\n"
+              ALL_PR_DESCRIPTIONS+="$PR_DESC_FOR_TAG "
             done
             for TAG in $TAGS; do
-              git tag "$TAG" -m "Merged Tickets: $ALL_TICKETS\n$ALL_PR_DESCRIPTIONS"
+              git tag "$TAG" -m "Merged Tickets: $ALL_TICKETS $ALL_PR_DESCRIPTIONS"
               git push origin "$TAG"
-              gh release create "$TAG" --title "$TAG" --notes "Merged Tickets: $ALL_TICKETS\n$ALL_PR_DESCRIPTIONS"
+              gh release create "$TAG" --title "$TAG" --notes "Merged Tickets: $ALL_TICKETS $ALL_PR_DESCRIPTIONS"
             done
           fi
 
