@@ -24,7 +24,7 @@ jobs:
         if: github.event.pull_request.merged == true
         run: |
           BASE_REF="${{ github.event.pull_request.base.ref }}"
-          TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP '\d+' || echo "")
+          TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP '[a-zA-Z0-9]+' || echo "")
           PR_DESCRIPTION=$(echo ${{ github.event.pull_request.body }} | head -n 2)
           echo "BASE_REF: $BASE_REF"
           echo "TICKET_NUMBER: $TICKET_NUMBER"
