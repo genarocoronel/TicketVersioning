@@ -42,7 +42,6 @@ jobs:
             git checkout staging
             TAGS=$(git tag --merged staging) # Get tags merged into main
             echo $TAGS
-            git tag -d $TAGS
             git push origin :$TAGS
             ALL_TICKETS=""
             ALL_PR_DESCRIPTIONS=""
