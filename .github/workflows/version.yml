@@ -34,13 +34,13 @@ jobs:
                   -H "Authorization: token $GITHUB_TOKEN" \
                   -H "Accept: application/vnd.github.v3+json" \
                   -d @- \
-                  "https://api.github.com/repos/${{ github.repository }}/releases" <<EOF
-              {
-                "tag_name": "$TICKET_NUMBER",
-                "name": "$TICKET_NUMBER",
-                "body": "$PR_DESCRIPTION $CLICKUP_URL"
-              }
-              EOF
+                  "https://api.github.com/repos/${{ github.repository }}/releases" <<-EOF
+                  {
+                    "tag_name": "$TICKET_NUMBER",
+                    "name": "$TICKET_NUMBER",
+                    "body": "$PR_DESCRIPTION $CLICKUP_URL"
+                  }
+                  EOF
           elif [[ "$BASE_REF" == "main" ]]; then
             TAGS=$(git tag --merged main) # Get tags merged into main
             git tag -d $TAGS
@@ -60,13 +60,12 @@ jobs:
                   -H "Authorization: token $GITHUB_TOKEN" \
                   -H "Accept: application/vnd.github.v3+json" \
                   -d @- \
-                  "https://api.github.com/repos/${{ github.repository }}/releases" <<EOF
-                    {
-                      "tag_name": "$TAG",
-                      "name": "$TAG",
-                      "body": "Merged Tickets: $ALL_TICKETS $ALL_PR_DESCRIPTIONS"
-                    }
-                    EOF
+                  "https://api.github.com/repos/${{ github.repository }}/releases" <<-EOF
+                  {
+                    "tag_name": "$TAG",
+                    "name": "$TAG",
+                    "body": "Merged Tickets: $ALL_TICKETS $ALL_PR_DESCRIPTIONS"
+                  }
+                  EOF
             done
           fi
-
