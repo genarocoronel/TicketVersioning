@@ -30,7 +30,7 @@ jobs:
           echo "TICKET_NUMBER: $TICKET_NUMBER"
           echo "PR_DESCRIPTION: $PR_DESCRIPTION"
           if [[ "$BASE_REF" == "staging" && -n "$TICKET_NUMBER" ]]; then
-            CLICKUP_URL="https://clickup.com/issue/$TICKET_NUMBER"
+            CLICKUP_URL="https://app.clickup.com/t/$TICKET_NUMBER"
             git tag "$TICKET_NUMBER" -m "$PR_DESCRIPTION $CLICKUP_URL"
             git push origin "$TICKET_NUMBER"
             PAYLOAD=$(jq -n --arg tn "$TICKET_NUMBER" --arg pd "$PR_DESCRIPTION $CLICKUP_URL" '{tag_name: $tn, name: $tn, body: $pd}')
@@ -42,7 +42,7 @@ jobs:
             ALL_TICKETS=""
             ALL_PR_DESCRIPTIONS=""
             for TAG in $TAGS; do
-              CLICKUP_URL="https://clickup.com/issue/$TAG"
+              CLICKUP_URL="https://app.clickup.com/t/$TAG"
               ALL_TICKETS+="$CLICKUP_URL, "
               PR_DESC_FOR_TAG=$(git tag -l "$TAG" --format='%(contents)')
               ALL_PR_DESCRIPTIONS+="$PR_DESC_FOR_TAG "
