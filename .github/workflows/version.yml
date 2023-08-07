@@ -47,10 +47,9 @@ jobs:
               PR_DESC_FOR_TAG=$(git tag -l "$TAG" --format='%(contents)')
               ALL_PR_DESCRIPTIONS+="$PR_DESC_FOR_TAG "
             done
-            for TAG in $TAGS; do
-              git tag "$TAG" -m "Merged Tickets: $ALL_TICKETS $ALL_PR_DESCRIPTIONS"
-              git push origin "$TAG"
-              PAYLOAD=$(jq -n --arg tn "$TAG" --arg at "$ALL_TICKETS" --arg apd "$ALL_PR_DESCRIPTIONS" '{tag_name: $tn, name: $tn, body: ("Merged Tickets: " + $at + $apd)}')
-              curl -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/releases"
-            done
+            RELEASE_TAG="release-$(date +%Y%m%d%H%M%S)" # You can customize the release tag format
+            git tag "$RELEASE_TAG" -m "Merged Tickets: $ALL_TICKETS $ALL_PR_DESCRIPTIONS"
+            git push origin "$RELEASE_TAG"
+            PAYLOAD=$(jq -n --arg tn "$RELEASE_TAG" --arg at "$ALL_TICKETS" --arg apd "$ALL_PR_DESCRIPTIONS" '{tag_name: $tn, name: $tn, body: ("Merged Tickets: " + $at + $apd)}')
+            curl -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/releases"
           fi
