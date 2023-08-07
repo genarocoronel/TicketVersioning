@@ -30,17 +30,7 @@ jobs:
             CLICKUP_URL="https://clickup.com/issue/$TICKET_NUMBER"
             git tag "$TICKET_NUMBER" -m "$PR_DESCRIPTION $CLICKUP_URL"
             git push origin "$TICKET_NUMBER"
-             curl -X POST \
-                  -H "Authorization: token $GITHUB_TOKEN" \
-                  -H "Accept: application/vnd.github.v3+json" \
-                  -d @- \
-                  "https://api.github.com/repos/${{ github.repository }}/releases" <<EOF
-            {
-              "tag_name": "$TICKET_NUMBER",
-              "name": "$TICKET_NUMBER",
-              "body": "$PR_DESCRIPTION $CLICKUP_URL"
-            }
-          EOF
+            curl -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "{\"tag_name\": \"$TICKET_NUMBER\", \"name\": \"$TICKET_NUMBER\", \"body\": \"$PR_DESCRIPTION $CLICKUP_URL\"}" "https://api.github.com/repos/${{ github.repository }}/releases"
           elif [[ "$BASE_REF" == "main" ]]; then
             TAGS=$(git tag --merged main) # Get tags merged into main
             git tag -d $TAGS
