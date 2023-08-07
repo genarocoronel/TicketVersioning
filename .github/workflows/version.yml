@@ -46,16 +46,6 @@ jobs:
             for TAG in $TAGS; do
               git tag "$TAG" -m "Merged Tickets: $ALL_TICKETS $ALL_PR_DESCRIPTIONS"
               git push origin "$TAG"
-              curl -X POST \
-                  -H "Authorization: token $GITHUB_TOKEN" \
-                  -H "Accept: application/vnd.github.v3+json" \
-                  -d @- \
-                  "https://api.github.com/repos/${{ github.repository }}/releases" <<-EOF
-                  {
-                    "tag_name": "$TAG",
-                    "name": "$TAG",
-                    "body": "Merged Tickets: $ALL_TICKETS $ALL_PR_DESCRIPTIONS"
-                  }
-                  EOF
+              curl -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "{\"tag_name\": \"$TAG\", \"name\": \"$TAG\", \"body\": \"Merged Tickets: $ALL_TICKETS $ALL_PR_DESCRIPTIONS\"}" "https://api.github.com/repos/${{ github.repository }}/releases"
             done
           fi
