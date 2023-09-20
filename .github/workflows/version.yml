@@ -10,7 +10,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0 # Fetch all history for all branches and tags
+          fetch-depth: 0
 
       - name: Set up Git user
         run: |
@@ -28,9 +28,6 @@ jobs:
           BASE_REF="${{ github.event.pull_request.base.ref }}"
           TICKET_NUMBER=$(echo ${{ github.event.pull_request.title }} | grep -oP '\[\K[a-zA-Z0-9]+(?=\])' || echo "")
           PR_DESCRIPTION=$(echo ${{ github.event.pull_request.body }} | head -n 2)
-          echo "BASE_REF: $BASE_REF"
-          echo "TICKET_NUMBER: $TICKET_NUMBER"
-          echo "PR_DESCRIPTION: $PR_DESCRIPTION"
 
           if [[ "$BASE_REF" == "staging" && -n "$TICKET_NUMBER" ]]; then
             CLICKUP_URL="https://app.clickup.com/t/$TICKET_NUMBER"
@@ -43,7 +40,6 @@ jobs:
             git checkout staging
             PARENT_COMMIT=$(git log --merges -n 1 --pretty="%P" | awk '{print $1}')
             NEW_TAGS=$(git tag --contains $PARENT_COMMIT)
-            echo "Tags introduced in the latest merge: $NEW_TAGS"
 
             ALL_TICKETS=""
             ALL_PR_DESCRIPTIONS=""
@@ -53,10 +49,12 @@ jobs:
               PR_DESC_FOR_TAG=$(git tag -l "$TAG" --format='%(contents)')
               ALL_PR_DESCRIPTIONS=$(printf "%s\n%s" "$ALL_PR_DESCRIPTIONS" "$PR_DESC_FOR_TAG")
             done
+
             RELEASE_TAG="release-$(date +%Y%m%d%H%M%S)"
             RELEASE_NOTES=$(printf "Merged Tickets:\n%s\n\nDescriptions:\n%s" "$ALL_TICKETS" "$ALL_PR_DESCRIPTIONS")
             git tag "$RELEASE_TAG" -m "$RELEASE_NOTES"
             git push origin "$RELEASE_TAG"
+
             PAYLOAD=$(jq -n --arg tn "$RELEASE_TAG" --arg rn "$RELEASE_NOTES" '{tag_name: $tn, name: $tn, body: $rn}')
             curl -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/releases"
           fi
