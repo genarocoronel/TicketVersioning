@@ -31,6 +31,7 @@ jobs:
           echo "BASE_REF: $BASE_REF"
           echo "TICKET_NUMBER: $TICKET_NUMBER"
           echo "PR_DESCRIPTION: $PR_DESCRIPTION"
+
           if [[ "$BASE_REF" == "staging" && -n "$TICKET_NUMBER" ]]; then
             CLICKUP_URL="https://app.clickup.com/t/$TICKET_NUMBER"
             git tag "$TICKET_NUMBER" -m "$PR_DESCRIPTION $CLICKUP_URL"
@@ -52,13 +53,14 @@ jobs:
             ALL_PR_DESCRIPTIONS=""
             for TAG in $NEW_TAGS; do
               CLICKUP_URL="https://app.clickup.com/t/$TAG"
-              ALL_TICKETS+="$CLICKUP_URL, "
+              ALL_TICKETS+="$CLICKUP_URL\n"
               PR_DESC_FOR_TAG=$(git tag -l "$TAG" --format='%(contents)')
-              ALL_PR_DESCRIPTIONS+="$PR_DESC_FOR_TAG "
+              ALL_PR_DESCRIPTIONS+="$PR_DESC_FOR_TAG\n"
             done
             RELEASE_TAG="release-$(date +%Y%m%d%H%M%S)"
-            git tag "$RELEASE_TAG" -m "Merged Tickets: $ALL_TICKETS $ALL_PR_DESCRIPTIONS"
+            RELEASE_NOTES="Merged Tickets:\n$ALL_TICKETS\nDescriptions:\n$ALL_PR_DESCRIPTIONS"
+            git tag "$RELEASE_TAG" -m "$RELEASE_NOTES"
             git push origin "$RELEASE_TAG"
-            PAYLOAD=$(jq -n --arg tn "$RELEASE_TAG" --arg at "$ALL_TICKETS" --arg apd "$ALL_PR_DESCRIPTIONS" '{tag_name: $tn, name: $tn, body: ("Merged Tickets: " + $at + $apd)}')
+            PAYLOAD=$(jq -n --arg tn "$RELEASE_TAG" --arg rn "$RELEASE_NOTES" '{tag_name: $tn, name: $tn, body: $rn}')
             curl -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$PAYLOAD" "https://api.github.com/repos/${{ github.repository }}/releases"
           fi
