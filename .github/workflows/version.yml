@@ -41,17 +41,15 @@ jobs:
             PARENT_COMMIT=$(git log --merges -n 1 --pretty="%P" | awk '{print $1}')
             NEW_TAGS=$(git tag --contains $PARENT_COMMIT)
 
-            ALL_TICKETS=""
-            ALL_PR_DESCRIPTIONS=""
+            ALL_TICKETS="| Ticket | Description |\n| ------ | ----------- |\n"
             for TAG in $NEW_TAGS; do
               CLICKUP_URL="https://app.clickup.com/t/$TAG"
-              ALL_TICKETS=$(printf "%s\n%s" "$ALL_TICKETS" "$CLICKUP_URL")
               PR_DESC_FOR_TAG=$(git tag -l "$TAG" --format='%(contents)')
-              ALL_PR_DESCRIPTIONS=$(printf "%s\n%s" "$ALL_PR_DESCRIPTIONS" "$PR_DESC_FOR_TAG")
+              ALL_TICKETS+="| [$TAG]($CLICKUP_URL) | $PR_DESC_FOR_TAG |\n"
             done
 
             RELEASE_TAG="release-$(date +%Y%m%d%H%M%S)"
-            RELEASE_NOTES=$(printf "Merged Tickets:\n%s\n\nDescriptions:\n%s" "$ALL_TICKETS" "$ALL_PR_DESCRIPTIONS")
+            RELEASE_NOTES="## Merged Tickets\n\n$ALL_TICKETS"
             git tag "$RELEASE_TAG" -m "$RELEASE_NOTES"
             git push origin "$RELEASE_TAG"
 
